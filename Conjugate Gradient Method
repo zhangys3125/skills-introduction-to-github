@@ -1,1 +1,47 @@
-
+import numpy as np
+import matplotlib.pyplot as plt
+def conjugate_gradient(A, b, x0=None, tol=1e-10, max_iter=None):
+    n = A.shape[0]           #n‘s d
+    if max_iter is None:
+        max_iter = n * 2
+    x = np.zeros(n) if x0 is None else x0.copy()
+    r = b - A @ x
+    p = r.copy()
+    rs_old = r @ r
+    residuals = []          #intilization
+    for i in range(max_iter):
+        Ap = A @ p
+        alpha = rs_old / (p @ Ap)
+        x += alpha * p
+        r -= alpha * Ap
+        rs_new = r @ r
+        residual_norm = np.sqrt(rs_new)  # record residual
+        residuals.append(residual_norm)  #record every step
+        if residual_norm < tol:
+            print(f"Converged in {i + 1} iterations.")
+            break
+        beta = rs_new / rs_old
+        p = r + beta * p
+        rs_old = rs_new
+    return x, residuals
+# Generate SPD matrix and vector
+n = 42      #matrix dimension
+np.random.seed(42)  # For reproducibility
+Q = np.random.randn(n, n)
+A = Q.T @ Q + n * np.eye(n)
+b = np.random.randn(n)
+# Solve using CG method
+x_sol, residuals = conjugate_gradient(A, b)
+# Verification
+final_residual = np.linalg.norm(A @ x_sol - b)
+print(f"Final residual norm: {final_residual:.2e}")
+#generate the plot
+plt.figure(figsize=(8, 6))
+plt.semilogy(residuals, 'b-', linewidth=2, marker='o', markersize=4)
+plt.xlabel('Iteration Number', fontsize=12)
+plt.ylabel('Residual Norm', fontsize=12)
+plt.title('Conjugate Gradient Method Convergence', fontsize=14)
+plt.grid(True, alpha=0.3)
+plt.savefig('convergence_plot.png', dpi=300, bbox_inches='tight')
+plt.show()  
+   
